@@ -1,0 +1,516 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CommiSense Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#060607;--card:rgba(255,255,255,.045);--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16);--ink:#f4f4f0;--mute:#9b9ba1;--faint:#6b6b72;--soft:rgba(255,255,255,.06);--accent:#e50914;--ease:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box}
+html{font-size:clamp(12px,.9vw + 9.5px,16px);min-width:220px}
+html,body{height:100%;margin:0}
+body{font-family:Inter,-apple-system,"Segoe UI",system-ui,sans-serif;line-height:1.5;color:var(--ink);display:flex;flex-direction:column;height:100dvh;
+  background:radial-gradient(70% 45% at 85% -5%,rgba(229,9,20,.10),transparent 70%),radial-gradient(60% 40% at 0% 100%,rgba(255,255,255,.04),transparent 70%),var(--bg);-webkit-font-smoothing:antialiased}
+#feed{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:1em .85em .6em;display:flex;flex-direction:column;gap:.7em;scroll-behavior:smooth}
+#feed::-webkit-scrollbar{width:8px}#feed::-webkit-scrollbar-thumb{background:#26262a;border-radius:8px;border:2px solid var(--bg)}#feed::-webkit-scrollbar-track{background:transparent}
+.msg{max-width:min(92%,42em);overflow-wrap:anywhere;animation:in .45s var(--ease)}
+@keyframes in{from{opacity:0;transform:translateY(.7em) scale(.98);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+.bot{position:relative;align-self:flex-start;background:var(--card);border:1px solid var(--line);border-radius:1.15em 1.15em 1.15em .3em;padding:.75em .95em;backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.35);transition:border-color .25s,box-shadow .25s,opacity .3s}
+.bot.sel{border-color:var(--line2);box-shadow:0 12px 36px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.04)}
+.bot.sel::before{content:"";position:absolute;left:-1px;top:.9em;bottom:.9em;width:2px;border-radius:2px;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.bot.done{opacity:.5}
+.me{align-self:flex-end;background:var(--ink);color:#0a0a0a;font-weight:500;border-radius:1.15em 1.15em .3em 1.15em;padding:.55em .95em;white-space:pre-wrap}
+.say{align-self:flex-start;background:var(--soft);color:#e4e4e0;border:1px solid var(--line);border-radius:1.15em 1.15em 1.15em .3em;padding:.55em .95em;white-space:pre-wrap}
+.title{font-weight:600;letter-spacing:-.01em}
+.body{white-space:pre-wrap;color:#c9c9c5;margin-top:.2em}
+.ask{margin-top:.6em;color:var(--mute);font-size:.9em}
+.tip{margin-top:.4em;color:var(--faint);font-size:.8em}
+.chips{display:flex;flex-wrap:wrap;gap:.42em;margin-top:.6em}
+.chip{border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--ink);border-radius:999px;padding:.34em .85em;font:inherit;font-size:.88em;font-weight:500;cursor:pointer;max-width:100%;transition:background .2s,border-color .2s,transform .25s var(--ease)}
+.chip:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.3);transform:translateY(-1px)}
+.chip:active{transform:none}
+.chip.primary{background:var(--ink);color:#0a0a0a;border-color:var(--ink);font-weight:600}.chip.primary:hover{background:#fff;border-color:#fff}
+.chip.ghost{color:var(--mute);background:transparent}
+.status{margin-top:.5em;font-size:.86em;color:#7fd8a8}.status:empty{display:none}
+.det{margin-top:.65em;padding-top:.55em;border-top:1px dashed var(--line2);font-size:.9em;color:#d2d2ce}
+.det h4{margin:.7em 0 .2em;font-size:.72em;text-transform:uppercase;letter-spacing:.09em;color:var(--mute);font-weight:600}
+.det div{margin:.15em 0}
+form{display:flex;gap:.5em;padding:.65em .85em .85em;border-top:1px solid var(--line);background:rgba(6,6,7,.8);backdrop-filter:blur(16px)}
+input{flex:1;min-width:0;border:1px solid var(--line2);border-radius:999px;padding:.6em 1.05em;font:inherit;color:var(--ink);background:rgba(255,255,255,.05);outline:none;transition:border-color .2s,background .2s,box-shadow .2s}
+input::placeholder{color:var(--faint)}
+input:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.08);box-shadow:0 0 0 4px rgba(255,255,255,.05)}
+.send{border:0;background:var(--ink);color:#0a0a0a;border-radius:999px;padding:0 1.25em;font:inherit;font-weight:600;cursor:pointer;transition:background .2s,transform .25s var(--ease)}
+.send:hover{background:#fff;transform:translateY(-1px)}
+.title{font-size:.95em}
+.body{margin-top:.15em;font-size:.9em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;white-space:normal}
+.chips{margin-top:.5em}
+.sub{color:var(--mute);font-size:.85em;margin-top:.1em}
+.sub.ok{color:#7fd8a8}
+.tcard{align-self:stretch;max-width:100%;background:var(--card);border:1px solid var(--line);border-radius:1.1em;padding:.8em .9em;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:in .45s var(--ease)}
+.tcard.pulse{animation:pulse 1.1s var(--ease)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,9,20,.55)}100%{box-shadow:0 0 0 14px rgba(229,9,20,0)}}
+.thead{display:flex;align-items:baseline;justify-content:space-between;gap:.5em}
+.thead b{font-weight:600;letter-spacing:-.01em}
+.thead span{color:var(--faint);font-size:.78em}
+.rows{margin:.45em 0 0;padding:0;list-style:none}
+.row{display:flex;align-items:flex-start;gap:.6em;padding:.32em 0;border-top:1px solid var(--line);font-size:.9em;transition:opacity .3s}
+.row:first-child{border-top:0}
+.row.fin{opacity:.45}.row.fin .rt{text-decoration:line-through}
+.tick{flex:none;width:1.25em;height:1.25em;margin-top:.1em;border-radius:50%;border:1.5px solid var(--line2);background:transparent;color:#0a0a0a;font-size:.75em;line-height:1;cursor:pointer;padding:0;transition:background .2s,border-color .2s}
+.tick:hover{border-color:#fff;background:rgba(255,255,255,.15)}
+.row.fin .tick{background:#7fd8a8;border-color:#7fd8a8}
+.dot{flex:none;width:.4em;height:.4em;margin:.55em .35em 0 .4em;border-radius:50%;background:var(--faint)}
+.rt{min-width:0;overflow-wrap:anywhere}.rt small{display:block;color:var(--mute);font-size:.85em}
+.more{margin-top:.5em;background:none;border:0;color:var(--mute);font:inherit;font-size:.85em;cursor:pointer;padding:.15em 0}.more:hover{color:var(--ink)}
+.tabs{display:flex;gap:.25em;margin-top:.6em;padding:.2em;background:rgba(255,255,255,.05);border-radius:999px}
+.tab{flex:1;border:0;background:transparent;color:var(--mute);font:inherit;font-size:.82em;font-weight:500;padding:.38em .4em;border-radius:999px;cursor:pointer;transition:background .25s,color .25s}
+.tab:hover{color:var(--ink)}.tab.on{background:var(--ink);color:#0a0a0a;font-weight:600}
+.tab i{font-style:normal;opacity:.6;margin-left:.3em}
+.pane{animation:in .3s var(--ease)}
+.score{flex:none;align-self:center;font-size:.72em;font-weight:600;color:#fff;background:var(--accent);border-radius:999px;padding:.1em .55em}
+.det h4{margin:.8em 0 .1em}
+.det .ok{color:#7fd8a8;margin-top:.6em}
+.det{border-top:1px solid var(--line)}
+header{display:flex;align-items:center;gap:.5em;padding:.55em .9em;border-bottom:1px solid var(--line);background:rgba(6,6,7,.8);backdrop-filter:blur(16px)}
+header b{font-weight:600;letter-spacing:-.01em;font-size:.95em}
+#live{width:.5em;height:.5em;border-radius:50%;background:#7fd8a8;box-shadow:0 0 8px #7fd8a8;transition:background .3s}
+#live.off{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+#clr{margin-left:auto;border:0;background:none;color:var(--faint);font:inherit;font-size:.8em;cursor:pointer}#clr:hover{color:var(--ink)}
+#dock{border-top:1px solid var(--line);background:rgba(6,6,7,.85);backdrop-filter:blur(16px)}
+#dock form{border-top:0;background:none;padding-top:.2em}
+#presets{display:flex;gap:.4em;overflow-x:auto;overflow-y:hidden;padding:.5em .85em .35em;scrollbar-width:thin;scrollbar-color:#4a4a52 transparent}
+#presets::-webkit-scrollbar{height:6px}#presets::-webkit-scrollbar-track{background:transparent;margin:0 .85em}
+#presets::-webkit-scrollbar-thumb{background:#4a4a52;border-radius:6px}#presets::-webkit-scrollbar-thumb:hover{background:#6b6b72}
+#presets .chip{flex:none;white-space:nowrap;font-size:.82em;padding:.3em .8em}
+#ctx{display:none;align-items:center;gap:.5em;margin:.5em .85em 0;padding:.3em .4em .3em .8em;border-radius:999px;background:rgba(255,255,255,.06);font-size:.8em;color:var(--mute)}
+#ctx.on{display:flex}#ctx span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#ctx b{color:var(--ink);font-weight:500}
+#ctx button{border:0;background:rgba(255,255,255,.1);color:var(--ink);border-radius:50%;width:1.6em;height:1.6em;cursor:pointer;font-size:.9em;line-height:1}
+.typing{align-self:flex-start;display:flex;gap:.3em;padding:.7em .9em;background:var(--soft);border:1px solid var(--line);border-radius:1.1em 1.1em 1.1em .3em;animation:in .3s var(--ease)}
+.typing i{width:.4em;height:.4em;border-radius:50%;background:var(--mute);animation:blink 1.1s infinite}.typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
+@keyframes blink{0%,60%,100%{opacity:.25;transform:none}30%{opacity:1;transform:translateY(-.2em)}}
+.say{white-space:normal}.say p{margin:.15em 0}.say .hd{font-weight:600;margin-bottom:.15em}
+.say ul.rl{margin:.25em 0 .1em;padding-left:1.1em}.say ul.rl li{margin:.12em 0}
+.say .act{margin:.2em 0;color:#fff}.mgr .act{margin:.15em 0;font-size:.88em;color:#d8d8d4}.say .act::before{content:"→ ";color:var(--accent)}
+.say .rows{margin-top:.3em}
+.ts{display:block;margin-top:.25em;font-size:.68em;color:var(--faint)}.me .ts{color:rgba(0,0,0,.45);text-align:right}
+.follow{display:flex;flex-wrap:wrap;gap:.35em;margin-top:.55em}.follow .chip{font-size:.8em;padding:.25em .7em}
+input:disabled{opacity:.6}
+.mgr h4{margin:.7em 0 .1em;font-size:.7em;text-transform:uppercase;letter-spacing:.09em;color:var(--mute);font-weight:600}.mgr .hd{font-size:1em}.mgr p{margin:.2em 0}.say:has(.mgr){align-self:stretch;max-width:100%}
+.mgr{min-width:0}.mgr input{width:100%;flex:none;padding:.45em .9em;font-size:.9em;margin:.35em 0 .1em}
+.pills{display:flex;gap:.3em;overflow-x:auto;scrollbar-width:none;margin:.45em 0}.pills::-webkit-scrollbar{display:none}
+.pill{flex:none;border:1px solid var(--line2);background:transparent;color:var(--mute);border-radius:999px;font:inherit;font-size:.78em;padding:.25em .7em;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.pill:hover{color:var(--ink)}.pill.on{background:var(--ink);color:#0a0a0a;border-color:var(--ink);font-weight:600}.pill i{font-style:normal;opacity:.6;margin-left:.3em}
+.mrow{border-top:1px solid var(--line);padding:.4em 0;font-size:.9em}.mrow:first-child{border-top:0}
+.mrow .line{display:flex;align-items:flex-start;gap:.55em}
+.stat{flex:none;align-self:center;display:flex;align-items:center;gap:.35em;border:1px solid var(--line2);background:rgba(255,255,255,.04);color:var(--ink);border-radius:999px;font:inherit;font-size:.72em;padding:.2em .6em;cursor:pointer}
+.stat::before{content:"";width:.5em;height:.5em;border-radius:50%;background:var(--sc,#9b9ba1)}
+.stat:hover{background:rgba(255,255,255,.12)}
+.s-at_risk{--sc:#e5c07b}.s-overdue{--sc:#e50914}.s-done{--sc:#7fd8a8}.s-cancelled{--sc:#55555b}.s-open{--sc:#f4f4f0}
+.menu{display:flex;flex-wrap:wrap;gap:.3em;margin:.4em 0 .1em 1.8em;animation:in .25s var(--ease)}
+.menu .chip{font-size:.78em;padding:.22em .7em}.menu .chip.cur{background:var(--ink);color:#0a0a0a;border-color:var(--ink)}
+.mtoast{display:flex;align-items:center;gap:.6em;margin-top:.5em;padding:.4em .4em .4em .8em;border-radius:999px;background:rgba(127,216,168,.12);color:#9be6bd;font-size:.82em;animation:in .25s var(--ease)}
+.mtoast span{flex:1}.mtoast button{border:0;background:rgba(255,255,255,.12);color:var(--ink);border-radius:999px;font:inherit;font-size:.95em;padding:.2em .8em;cursor:pointer}
+.mini{border:0;background:none;color:var(--mute);font:inherit;font-size:.78em;cursor:pointer;margin-left:auto;padding:0 .6em}.mini:hover{color:var(--ink)}
+.thead .mini{order:2}
+.dep{display:flex;flex-wrap:wrap;align-items:center;gap:.3em;font-size:.9em}.dep b{font-weight:600}.dep em{font-style:normal;color:var(--mute)}
+.badge{font-size:.68em;border:1px solid var(--line2);border-radius:999px;padding:.05em .55em;color:var(--mute)}
+.ev{color:var(--mute);font-size:.8em;margin:.1em 0 .3em}
+.mgr .x{flex:none;margin-left:auto;border:0;background:none;color:var(--faint);cursor:pointer;font-size:1em}.mgr .x:hover{color:var(--ink)}
+.addrow{display:flex;flex-direction:column;gap:.3em;margin-top:.4em}.addrow input{margin:0}.addrow .mid{font-size:.8em;color:var(--mute);text-align:center}
+@media (max-width:300px){.send{padding:0 .8em}.chip{padding:.28em .65em}}
+@media (max-height:300px){form{padding:.4em .55em}#feed{padding:.55em}}
+@media (prefers-reduced-motion:reduce){.msg,.tcard{animation:none}.chip,.send{transition:none}}
+</style></head>
+<body>
+<header><b>CommiSense</b><span id="live" title="Connected"></span><button id="clr" title="Clear conversation">Clear</button></header>
+<div id="feed" role="log" aria-live="polite"></div>
+<div id="dock"><div id="ctx"><span></span><button type="button" title="Stop replying to this alert" aria-label="Clear selection">✕</button></div><div id="presets"></div>
+<form id="f"><input id="q" autocomplete="off" aria-label="Message" placeholder="Ask about your tasks…"><button class="send">Send</button></form></div>
+<script>
+const $=s=>document.querySelector(s), feed=$("#feed"), cards={}, marked=new Set();
+let selId=null, first=true, tcard=null, todayData=null;
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+async function j(url,method="GET",body){const r=await fetch(url,{method,headers:{"Content-Type":"application/json"},body:body?JSON.stringify(body):undefined});if(!r.ok){let d="";try{d=(await r.json()).detail}catch(e){}const err=new Error(typeof d==="string"&&d?d:r.status);err.status=r.status;err.detail=d;throw err}const t=await r.text();return t?JSON.parse(t):null}
+function newDue(dueIso,how){const base=dueIso?new Date(dueIso):new Date(new Date().setHours(0,0,0,0));const t=new Date();t.setHours(0,0,0,0);
+  if(how==="mon"){t.setDate(t.getDate()+((8-t.getDay())%7||7))}else t.setDate(t.getDate()+how);
+  t.setHours(base.getHours(),base.getMinutes(),0,0);return iso(t)}
+const fmtDay=d=>d.toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"});
+const fmtDue=s=>{const d=new Date(s);const dateOnly=d.getHours()===0&&d.getMinutes()===0;return dateOnly?"Due "+fmtDay(d):"Due "+d.toLocaleString([],{weekday:"short",hour:"numeric",minute:"2-digit"})};
+const bottom=()=>{feed.scrollTop=feed.scrollHeight};
+const el=(tag,cls,text)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e};
+const clock=()=>new Date().toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+const stamp=d=>d.appendChild(el("span","ts",clock()));
+function bubble(cls,text){const d=el("div","msg "+cls,text);stamp(d);feed.appendChild(d);bottom();return d}
+function renderReply(text){const f=document.createDocumentFragment();let ul=null;
+  String(text).split("\n").filter(l=>l.trim()).forEach((l,i)=>{
+    if(/^\s*[•\-\*]\s+/.test(l)){if(!ul){ul=el("ul","rl");f.appendChild(ul)}ul.appendChild(el("li","",l.replace(/^\s*[•\-\*]\s+/,"")));return}
+    ul=null;if(/^\s*→\s*/.test(l))f.appendChild(el("div","act",l.replace(/^\s*→\s*/,"")));else f.appendChild(el("p",i===0&&/:\s*$|\(\d+\):?$/.test(l)?"hd":"",l))});return f}
+function botSay(content,chips,follow){const d=el("div","msg say");
+  if(typeof content==="string")d.appendChild(renderReply(content));else d.appendChild(content);
+  if(chips)d.appendChild(chipRow(chips));
+  if(follow&&follow.length){const fr=el("div","follow");follow.forEach(k=>{const b=el("button","chip",PRESETS[k]?PRESETS[k].label:k);b.onclick=()=>{fr.remove();ask(k)};fr.appendChild(b)});d.appendChild(fr)}
+  stamp(d);feed.appendChild(d);bottom();return d}
+let typingEl=null;
+const typing=on=>{if(on&&!typingEl){typingEl=el("div","typing");typingEl.append(el("i"),el("i"),el("i"));feed.appendChild(typingEl);bottom()}else if(!on&&typingEl){typingEl.remove();typingEl=null}};
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+function chipRow(chips,n){const row=el("div","chips");
+  chips.forEach(o=>{if(o.href){const a=el("a","chip "+(o.cls||""),o.label);a.href=o.href;a.target="_blank";a.rel="noopener noreferrer";a.style.textDecoration="none";a.onclick=ev=>ev.stopPropagation();row.appendChild(a);return}
+    const b=el("button","chip "+(o.cls||""),o.label);
+    b.onclick=async ev=>{ev.stopPropagation();if(n){selId=n.id;select()}await o.run?.(b,row)};row.appendChild(b)});return row}
+
+/* ---------- Today card: today's tasks first, details = overdue + coming up ---------- */
+const short=(s,n=70)=>s.length>n?s.slice(0,n-1)+"…":s;
+function rowFor(c,tickable){
+  const li=el("li","row");
+  if(tickable){const b=el("button","tick");b.title="Mark done";b.onclick=async()=>{
+    try{await j(`/commitments/${c.id}`,"PATCH",{status:"done"});li.classList.add("fin");b.textContent="✓";b.disabled=true;setTimeout(loadToday,900)}
+    catch(e){botSay("Couldn't mark that done: "+e.message)}};li.appendChild(b)}
+  else li.appendChild(el("span","dot"));
+  const t=el("div","rt");t.appendChild(document.createTextNode(short((c.owner?c.owner+": ":"")+c.text)));
+  const d=new Date(c.due_iso);const timed=!(d.getHours()===0&&d.getMinutes()===0);
+  t.appendChild(el("small","",timed&&d.toDateString()===new Date().toDateString()?d.toLocaleTimeString([],{hour:"numeric",minute:"2-digit"}):fmtDay(d)));
+  li.appendChild(t);return li}
+function section(title,items,tickable,max=4){
+  const f=document.createDocumentFragment();if(!items.length)return f;
+  f.appendChild(el("h4","",title));const ul=el("ul","rows");items.slice(0,max).forEach(c=>ul.appendChild(rowFor(c,tickable)));f.appendChild(ul);
+  if(items.length>max)f.appendChild(el("div","sub","+"+(items.length-max)+" more"));return f}
+let tab="today";
+function renderToday(){
+  if(!todayData)return;
+  if(!tcard){tcard=el("div","tcard");feed.appendChild(tcard)}
+  const d=todayData,tm=new Date();tm.setDate(tm.getDate()+1);tcard.textContent="";
+  const h=el("div","thead");h.appendChild(el("b","","Today"));h.appendChild(el("span","",new Date().toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"})));const mb=el("button","mini","All tasks ›");mb.onclick=()=>ask("manage");h.insertBefore(mb,h.lastChild);tcard.appendChild(h);
+  const up=d.overdue.length+d.upcoming.length,pr=(d.priority||[]).length;
+  const tabs=el("div","tabs");
+  [["today","Today",d.today.length],["priority","Priority",pr],["upcoming","Upcoming",up]].forEach(([k,l,n])=>{
+    const b=el("button","tab"+(tab===k?" on":""),l);if(n){b.appendChild(el("i","",n))}b.onclick=()=>{tab=k;renderToday()};tabs.appendChild(b)});
+  tcard.appendChild(tabs);
+  const pane=el("div","pane");
+  if(tab==="today"){
+    if(d.today.length){const ul=el("ul","rows");d.today.slice(0,5).forEach(c=>ul.appendChild(rowFor(c,true)));pane.appendChild(ul);
+      if(d.today.length>5)pane.appendChild(el("div","sub","+"+(d.today.length-5)+" more"))}
+    else pane.appendChild(el("div","sub ok","You're all okay 🎉 Nothing due today."))}
+  else if(tab==="priority"){
+    if(pr){const ul=el("ul","rows");d.priority.slice(0,4).forEach(c=>{const r=rowFor(c,true);r.appendChild(el("span","score",c.score));if(c.why)r.querySelector(".rt small").textContent=short(c.why,60);ul.appendChild(r)});pane.appendChild(ul)}
+    else pane.appendChild(el("div","sub ok","You're all okay 🎉 Nothing high-priority."))}
+  else{
+    const tomorrow=d.upcoming.filter(c=>new Date(c.due_iso).toDateString()===tm.toDateString());
+    const later=d.upcoming.filter(c=>new Date(c.due_iso).toDateString()!==tm.toDateString());
+    pane.appendChild(section("Overdue",d.overdue,true));pane.appendChild(section("Tomorrow",tomorrow,false));pane.appendChild(section("This week",later,false));
+    if(!up)pane.appendChild(el("div","sub ok","You're all okay 🎉 Nothing coming up."))}
+  tcard.appendChild(pane);
+}
+async function loadToday(){try{todayData=await j("/assistant/today");renderToday()}catch(e){}}
+function bumpToday(){if(!tcard)return;feed.appendChild(tcard);tcard.classList.remove("pulse");void tcard.offsetWidth;tcard.classList.add("pulse");bottom()}
+
+/* ---------- Manage: list every commitment, change its status ---------- */
+const LBL={open:"Open",at_risk:"At risk",overdue:"Overdue",done:"Done",cancelled:"Cancelled"};
+function managerNode(initial){
+  const st={f:initial||"open",q:"",limit:8,items:[],counts:{},total:0};let menuId=null,timer=null;
+  const root=el("div","mgr");root.appendChild(el("div","hd","Your commitments"));
+  const search=el("input");search.placeholder="Search by task or person…";search.setAttribute("aria-label","Search commitments");root.appendChild(search);
+  const pills=el("div","pills"),list=el("div","mlist"),foot=el("div"),toast=el("div");
+  root.append(pills,list,foot,toast);
+  search.oninput=()=>{clearTimeout(timer);timer=setTimeout(()=>{st.q=search.value;st.limit=8;load()},250)};
+  async function load(){try{const r=await j(`/assistant/list?status=${st.f}&q=${encodeURIComponent(st.q)}&limit=${st.limit}`);Object.assign(st,{items:r.items,counts:r.counts,total:r.total});draw()}
+    catch(e){list.textContent="Couldn't load commitments."}}
+  async function setStatus(it,to){
+    const prev=it.status;if(prev===to){menuId=null;draw();return}
+    try{await j(`/commitments/${it.id}`,"PATCH",{status:to})}catch(e){toast.textContent="";toast.appendChild(el("div","mtoast")).textContent="Couldn't update: "+e.message;return}
+    menuId=null;await load();loadToday();
+    toast.textContent="";const t=el("div","mtoast");t.appendChild(el("span","","Marked "+LBL[to]));
+    const u=el("button","","Undo");u.onclick=async()=>{try{await j(`/commitments/${it.id}`,"PATCH",{status:prev==="overdue"?"open":prev});toast.textContent="";await load();loadToday()}catch(e){}};
+    t.appendChild(u);toast.appendChild(t);setTimeout(()=>{if(t.isConnected)t.remove()},6000)}
+  function draw(){
+    pills.textContent="";Object.keys(LBL).forEach(k=>{const b=el("button","pill"+(st.f===k?" on":""),LBL[k]);b.appendChild(el("i","",st.counts[k]||0));b.onclick=()=>{st.f=k;st.limit=8;menuId=null;toast.textContent="";load()};pills.appendChild(b)});
+    list.textContent="";
+    if(!st.items.length)list.appendChild(el("p","sub ok",st.q?"No matches.":(st.f==="done"||st.f==="cancelled")?"Nothing here yet.":"You're all okay 🎉 Nothing "+LBL[st.f].toLowerCase()+"."));
+    st.items.forEach(it=>{
+      const r=el("div","mrow"),line=el("div","line");
+      const tk=el("button","tick"+(it.status==="done"?" on":""));tk.title=it.status==="done"?"Reopen":"Mark done";if(it.status==="done"){tk.textContent="✓";tk.style.background="#7fd8a8";tk.style.borderColor="#7fd8a8"}
+      tk.onclick=()=>setStatus(it,it.status==="done"?"open":"done");line.appendChild(tk);
+      const t=el("div","rt");t.appendChild(document.createTextNode(short((it.owner?it.owner+": ":"")+it.text,80)));
+      if(it.due_iso)t.appendChild(el("small","",fmtDue(it.due_iso)));line.appendChild(t);
+      const s=el("button","stat s-"+it.status,LBL[it.status]);s.title="Change status";s.onclick=()=>{menuId=menuId===it.id?null:it.id;draw()};line.appendChild(s);r.appendChild(line);
+      if(menuId===it.id){const m=el("div","menu");["open","at_risk","done","cancelled"].forEach(k=>{const b=el("button","chip"+(it.status===k?" cur":""),LBL[k]);b.onclick=()=>setStatus(it,k);m.appendChild(b)});r.appendChild(m)}
+      list.appendChild(r)});
+    foot.textContent="";if(st.total>st.items.length){const m=el("button","more","Show more ("+(st.total-st.items.length)+")");m.onclick=()=>{st.limit+=8;load()};foot.appendChild(m)}
+  }
+  load();return root}
+
+/* ---------- Brief card: short summary + commitments you can act on ---------- */
+function statusRow(it,onDone){
+  const r=el("div","mrow"),line=el("div","line");let menu=null;
+  const tk=el("button","tick");tk.title="Mark done";line.appendChild(tk);
+  const t=el("div","rt");t.appendChild(document.createTextNode(short((it.owner?it.owner+": ":"")+it.text,70)));
+  if(it.due)t.appendChild(el("small","",fmtDue(it.due)));line.appendChild(t);
+  const s=el("button","stat");line.appendChild(s);r.appendChild(line);
+  const paint=()=>{s.className="stat s-"+it.status;s.textContent=LBL[it.status]||it.status;const d=it.status==="done";
+    tk.textContent=d?"✓":"";tk.style.background=d?"#7fd8a8":"";tk.style.borderColor=d?"#7fd8a8":"";r.classList.toggle("fin",d||it.status==="cancelled")};
+  async function set(to){if(to===it.status)return;const prev=it.status;
+    try{await j(`/commitments/${it.id}`,"PATCH",{status:to});it.status=to;paint();loadToday();onDone&&onDone()}catch(e){botSay("Couldn't update: "+e.message)}
+    if(menu){menu.remove();menu=null}}
+  tk.onclick=()=>set(it.status==="done"?"open":"done");
+  s.onclick=()=>{if(menu){menu.remove();menu=null;return}menu=el("div","menu");
+    ["open","at_risk","done","cancelled"].forEach(k=>{const b=el("button","chip"+(it.status===k?" cur":""),LBL[k]);b.onclick=()=>set(k);menu.appendChild(b)});r.appendChild(menu)};
+  paint();return r}
+async function briefNode(kind){
+  const box=el("div","mgr"),b=await j(`/briefs/latest?kind=${kind}`).catch(()=>null);
+  if(!b){box.appendChild(el("p","",`No ${kind} brief yet.`));return box}
+  box.appendChild(el("div","hd",(kind==="weekly"?"Weekly brief":"Daily brief")));
+  if(b.headline)box.appendChild(el("p","",short(b.headline.replace(/^(daily|weekly) brief:?\s*/i,""),110)));
+  const sum=(b.summary||"").split(/(?<=[.!?])\s/)[0];if(sum&&sum!==b.headline)box.appendChild(el("div","sub",short(sum,130)));
+  const seen=new Set(),groups=[["Overdue",b.overdue],["Critical",b.critical],["Upcoming",b.upcoming]].map(([t,a])=>[t,(a||[]).filter(x=>x.id&&!seen.has(x.id)&&seen.add(x.id)).slice(0,4)]).filter(g=>g[1].length);
+  let st={};if(seen.size)st=await j(`/assistant/status?ids=${[...seen].join(",")}`).catch(()=>({}));
+  if(!groups.length)box.appendChild(el("p","sub ok","You're all okay 🎉 Nothing needs attention."));
+  groups.forEach(([title,arr])=>{box.appendChild(el("h4","",title));const wrap=el("div");arr.forEach(x=>{x.status=st[x.id]||"open";wrap.appendChild(statusRow(x))});box.appendChild(wrap)});
+  const acts=(b.actions||[]).slice(0,2);if(acts.length){box.appendChild(el("h4","","Next"));acts.forEach(a=>box.appendChild(el("div","act",a.action)))}
+  return box}
+
+/* ---------- Dependencies: names instead of numbers; detected, manual, and "who am I waiting on" ---------- */
+const GMAIL_DRAFTS="https://mail.google.com/mail/u/0/#drafts";
+const kx=c=>c.key||("#"+c.id);
+function depRow(a,verb,b,extra){const r=el("div","dep");r.appendChild(Object.assign(el("b"),{textContent:kx(a)}));r.appendChild(el("em","",verb));
+  r.appendChild(Object.assign(el("b"),{textContent:kx(b)}));if(b.owner)r.appendChild(el("em","","("+b.owner+")"));if(extra)r.appendChild(extra);return r}
+function candChips(d,retry){return d.candidates.map(c=>({label:c.key+" · "+c.owner,run:()=>retry(c.key)}))}
+async function linkByName(task,up){
+  try{const r=await j("/dependencies/link","POST",{task,depends_on:up});
+    loadToday();return botSay(depRow(r.task,"now waits on",r.depends_on),null,["deps","manage"])}
+  catch(e){const d=e.detail;
+    if(d&&d.reason==="ambiguous"){return botSay(`“${d.ref}” matches more than one. Which?`,candChips(d,k=>linkByName(d.which==="task"?k:task,d.which==="depends_on"?k:up)))}
+    if(d&&d.reason==="not_found")return botSay(`I couldn't find a commitment matching “${d.ref}”. Try its key, e.g. system-architecture.`,[{label:"Show keys",run:()=>ask("deps")}]);
+    return botSay(typeof d==="string"&&d?d:"Couldn't link those ("+e.status+").")}}
+async function unlinkByName(task,up){
+  try{await j("/dependencies/unlink","POST",{task,depends_on:up});botSay("Link removed.")}
+  catch(e){const d=e.detail;if(d&&d.reason==="ambiguous")return botSay(`“${d.ref}” matches more than one. Which?`,candChips(d,k=>unlinkByName(d.which==="task"?k:task,d.which==="depends_on"?k:up)));
+    botSay(d&&d.reason==="no_link"?"Those two aren't linked.":"I couldn't find one of those.")}}
+async function whoNode(person,mine){
+  const r=await j(`/dependencies/who?person=${encodeURIComponent(person)}&mine=${mine?"true":"false"}`);
+  const box=document.createElement("div");box.appendChild(el("div","hd",r.summary));
+  r.waiting.slice(0,6).forEach(w=>box.appendChild(depRow(w.task,"waits on",w.via,w.direct?null:el("span","badge","indirect"))));
+  r.untracked.slice(0,4).forEach(u=>{const row=el("div","dep");row.append(Object.assign(el("b"),{textContent:kx(u.task)}),el("em","","may wait on "+(u.owner||"someone")+": "+short(u.text||"",40)),el("span","badge","not tracked"));box.appendChild(row)});
+  if(r.person_waits_on.length){box.appendChild(el("h4","",r.person+" is waiting on"));r.person_waits_on.slice(0,4).forEach(x=>box.appendChild(depRow(x.task,"waits on",x.waits_on)))}
+  return box}
+async function ofNode(ref,dir){
+  const r=await j(`/dependencies/of?ref=${encodeURIComponent(ref)}`);const box=document.createElement("div");
+  const list=dir==="blocks"?r.blocks:r.depends_on;
+  box.appendChild(el("div","hd",dir==="blocks"?(list.length?`${kx(r.task)} is needed by ${list.length}${r.blocks_total>list.length?` (${r.blocks_total} in total)`:""}:`:`Nothing waits on ${kx(r.task)}.`)
+    :(list.length||r.waiting_for.length?`${kx(r.task)} depends on:`:`${kx(r.task)} doesn't depend on anything.`)));
+  list.forEach(c=>box.appendChild(depRow(dir==="blocks"?c:r.task,dir==="blocks"?"waits on":"waits on",dir==="blocks"?r.task:c)));
+  if(dir!=="blocks")r.waiting_for.forEach(w=>{const row=el("div","dep");row.append(el("em","","waiting for "+(w.owner||"someone")+": "+short(w.text||"",40)),el("span","badge","not tracked"));box.appendChild(row)});
+  return box}
+async function depsNode(){
+  const box=el("div","mgr");box.appendChild(el("div","hd","Dependencies"));
+  const [sugs,links,keys]=await Promise.all([j("/dependencies/suggestions").catch(()=>[]),j("/dependencies/links").catch(()=>[]),j("/dependencies/keys").catch(()=>[])]);
+  const body=el("div");box.appendChild(body);
+  const redraw=async()=>{box.replaceWith(await depsNode());loadToday()};
+  if(sugs.length){body.appendChild(el("h4","","Detected in your messages"));
+    sugs.slice(0,3).forEach(s=>{const w=el("div","mrow");
+      w.appendChild(depRow(s.task,"may wait on",s.upstream||{key:(s.owner||"someone")+": "+short(s.text||"a deliverable",34)}));
+      if(s.evidence)w.appendChild(el("div","ev","“"+short(s.evidence,90)+"”"));
+      const row=el("div","chips");
+      const go=(label,path,cls)=>{const b=el("button","chip "+(cls||""),label);b.onclick=async()=>{try{await j(`/dependencies/suggestions/${s.id}/${path}`,"POST",{});redraw()}catch(e){botSay(typeof e.detail==="string"?e.detail:(e.detail&&e.detail.message)||"Couldn't do that.")}};row.appendChild(b)};
+      if(s.upstream)go("Link them","link","primary");else if(s.text)go(`Track ${s.owner?s.owner+"'s":"this"} task`,"track","primary");go("Dismiss","dismiss","ghost");
+      w.appendChild(row);body.appendChild(w)});
+    if(sugs.length>3)body.appendChild(el("div","sub","+"+(sugs.length-3)+" more on the dashboard"))}
+  body.appendChild(el("h4","",links.length?"Links ("+links.length+")":"Links"));
+  if(!links.length)body.appendChild(el("p","sub","None yet. They appear when a message says one task waits on another."));
+  links.slice(0,6).forEach(l=>{const w=el("div","mrow"),line=el("div","dep");
+    line.append(Object.assign(el("b"),{textContent:kx(l.task)}),el("em","","waits on"),Object.assign(el("b"),{textContent:kx(l.depends_on)}),el("span","badge",l.origin==="auto"?"auto":"manual"));
+    const x=el("button","x","✕");x.title="Remove link";let armed=false;
+    x.onclick=async()=>{if(!armed){armed=true;x.textContent="Remove?";x.style.color="#fff";setTimeout(()=>{armed=false;x.textContent="✕";x.style.color=""},2500);return}
+      await j(`/dependencies/${l.id}`,"DELETE").catch(()=>{});redraw()};line.appendChild(x);w.appendChild(line);
+    if(l.evidence)w.appendChild(el("div","ev","“"+short(l.evidence,80)+"”"));body.appendChild(w)});
+  if(links.length>6)body.appendChild(el("div","sub","+"+(links.length-6)+" more on the dashboard"));
+  body.appendChild(el("h4","","Add a link"));
+  const dl=el("datalist");dl.id="dk"+Date.now();keys.forEach(k=>{const o=el("option");o.value=k.key;o.label=k.owner+" · "+k.label;dl.appendChild(o)});box.appendChild(dl);
+  const mk=ph=>{const i=el("input");i.placeholder=ph;i.setAttribute("list",dl.id);i.setAttribute("aria-label",ph);return i};
+  const a=mk("This task… e.g. final-presentation"),b=mk("…depends on e.g. system-architecture");
+  const ar=el("div","addrow");ar.append(a,b);const go=el("button","chip primary","Link");go.style.alignSelf="flex-start";
+  go.onclick=async()=>{if(a.value&&b.value){await linkByName(a.value,b.value);redraw()}};ar.appendChild(go);body.appendChild(ar);
+  return box}
+
+/* ---------- Drafts: every mail the app prepared, one tap from Gmail ---------- */
+async function draftsNode(){
+  const r=await j("/assistant/drafts"),box=el("div","mgr");
+  box.appendChild(el("div","hd",r.items.length?`Drafts in Gmail (${r.items.length})`:"Drafts in Gmail"));
+  if(!r.items.length)box.appendChild(el("p","sub ok","No drafts waiting. You're all okay 🎉"));
+  r.items.slice(0,6).forEach(d=>{const w=el("div","mrow"),line=el("div","dep");
+    line.append(el("span","badge",d.label),Object.assign(el("b"),{textContent:short((d.owner?d.owner+": ":"")+d.text,48)}));w.appendChild(line);
+    if(d.to)w.appendChild(el("div","ev","To "+d.to+(d.due_iso?" · "+fmtDue(d.due_iso):"")));
+    else if(d.due_iso)w.appendChild(el("div","ev",fmtDue(d.due_iso)));
+    const row=el("div","chips");const a=el("a","chip primary","Open ↗");a.href=r.url;a.target="_blank";a.rel="noopener noreferrer";a.style.textDecoration="none";row.appendChild(a);
+    const x=el("button","chip ghost","Discard");let armed=false;
+    x.onclick=async()=>{if(!armed){armed=true;x.textContent="Tap again to discard";setTimeout(()=>{armed=false;x.textContent="Discard"},2500);return}
+      try{await j(`/commitments/${d.commitment_id}/${d.kind==="meeting"?"meeting-draft":"draft"}`,"DELETE");w.remove()}catch(e){botSay("Couldn't discard it: "+e.message)}};
+    row.appendChild(x);w.appendChild(row);box.appendChild(w)});
+  if(r.items.length>6)box.appendChild(el("div","sub","+"+(r.items.length-6)+" more in Gmail"));
+  const all=el("div","chips"),link=el("a","chip","Open Gmail Drafts ↗");link.href=r.url;link.target="_blank";link.rel="noopener noreferrer";link.style.textDecoration="none";all.appendChild(link);box.appendChild(all);
+  return box}
+
+/* ---------- Presets and instant answers (no AI wait) ---------- */
+const PRESETS={
+  today:{label:"Due today",icon:"📅"},manage:{label:"Manage",icon:"📝"},overdue:{label:"Overdue",icon:"⚠️"},priority:{label:"Priority",icon:"🔥"},
+  tomorrow:{label:"Tomorrow",icon:"🌅"},week:{label:"This week",icon:"🗓"},brief:{label:"Daily brief",icon:"📋"},weekly:{label:"Weekly brief",icon:"🗓️"},deps:{label:"Dependencies",icon:"🔗"},drafts:{label:"Drafts",icon:"✉️"},help:{label:"Help",icon:"💡"}};
+const FOLLOW={today:["overdue","priority","tomorrow"],overdue:["today","priority"],priority:["today","overdue"],tomorrow:["week","today"],week:["today","priority"],brief:["priority","manage"],weekly:["priority","manage"],help:["today","manage","brief"],manage:["today","priority"],deps:["manage","today"],drafts:["deps","today"]};
+function taskList(title,items,tick,empty){
+  const box=document.createElement("div");box.appendChild(el("div","hd",items.length?`${title} (${items.length})`:title));
+  if(!items.length){box.appendChild(el("p","",empty));return box}
+  const ul=el("ul","rows");items.slice(0,6).forEach(c=>ul.appendChild(rowFor(c,tick)));box.appendChild(ul);
+  if(items.length>6)box.appendChild(el("div","sub","+"+(items.length-6)+" more — see the Today card"));return box}
+async function localAnswer(k){
+  await loadToday();const d=todayData||{today:[],overdue:[],upcoming:[],priority:[]};
+  const tm=new Date();tm.setDate(tm.getDate()+1);const isTm=c=>new Date(c.due_iso).toDateString()===tm.toDateString();
+  if(k==="manage")return managerNode();
+  if(k==="deps")return depsNode();
+  if(k==="drafts")return draftsNode();
+  if(k==="today")return taskList("Due today",d.today,true,"Nothing due today. You're all okay 🎉");
+  if(k==="overdue")return taskList("Overdue",d.overdue,true,"Nothing overdue. You're all okay 🎉");
+  if(k==="priority")return taskList("Top priority",d.priority||[],true,"Nothing high-priority. You're all okay 🎉");
+  if(k==="tomorrow")return taskList("Tomorrow",d.upcoming.filter(isTm),false,"Nothing due tomorrow. You're all okay 🎉");
+  if(k==="week")return taskList("Next 7 days",d.upcoming,false,"Nothing coming up. You're all okay 🎉");
+}
+async function ask(k){ // preset or typed intent
+  const label=PRESETS[k]?PRESETS[k].label:k;bubble("me",label);typing(true);
+  try{
+    if(k==="help"){const r=await j("/assistant/chat","POST",{text:"help",notification_id:selId});await wait(350);typing(false);botSay(r.reply,null,FOLLOW[k])}
+    else if(k==="brief"||k==="weekly"){const node=await briefNode(k==="weekly"?"weekly":"daily");typing(false);botSay(node,null,FOLLOW[k])}
+    else{const node=await localAnswer(k);await wait(350);typing(false);botSay(node,null,k==="manage"?null:FOLLOW[k])}
+  }catch(e){typing(false);botSay("I couldn't load that.",[{label:"Retry",cls:"primary",run:()=>ask(k)}])}
+}
+const INTENTS=[["drafts",/\b(drafts|draft (mails?|emails?)|drafted (mails?|emails?)|my drafts)\b/],["deps",/^(dependenc(y|ies)|links?|blockers?|show (links|dependencies))\b/],["manage",/\b(list|manage|edit|change|update|status|completed|show all|all (my )?(tasks|commitments)|my commitments|reopen)\b/],["overdue",/overdue|late|missed/],["priority",/priorit|urgent|important|critical/],["tomorrow",/tomorrow/],["week",/this week|week|upcoming|next few|coming up/],["today",/today|due now|what.?s due|my tasks|to.?do/]];
+const COMMAND=/^(done|complete|finish|dismiss|ignore|ok|okay|got it|accept|reschedule|move|push|postpone|delay|shift|remind|schedule|book|set up|depends|blocks|snooze|later|link)\b/i;
+const presetBar=$("#presets");Object.entries(PRESETS).forEach(([k,p])=>{const b=el("button","chip",p.icon+" "+p.label);b.onclick=()=>ask(k);presetBar.appendChild(b)});
+
+/* ---------- Alert cards (new / upcoming / overdue …): short, 3 buttons ---------- */
+async function perform(n,op){
+  const id=n.id,cid=n.commitment_id;let msg="",keep=false;
+  try{
+    if(op.op==="complete"){await j(`/commitments/${cid}`,"PATCH",{status:"done"});await j(`/notifications/${id}/action`,"POST",{action:"complete"});msg="Done ✓"}
+    else if(op.op==="resched"){const due=op.due_iso||newDue(n.due_iso,op.how);await j(`/commitments/${cid}`,"PATCH",{due_date:due});await j(`/notifications/${id}/action`,"POST",{action:"reschedule"});msg="Moved to "+fmtDay(new Date(due))+" ✓"}
+    else if(op.op==="remind"){await j(`/notifications/${id}/action`,"POST",{action:"remind",hours_before:op.hours_before});msg="Reminder set ✓"}
+    else if(op.op==="accept"){await j(`/notifications/${id}/action`,"POST",{action:"accept"});msg="Accepted ✓"}
+    else if(op.op==="dismiss"){await j(`/notifications/${id}/action`,"POST",{action:"dismiss"});msg="Dismissed"}
+    else if(op.op==="dep"){await j("/dependencies","POST",{commitment_id:op.commitment_id,depends_on_id:op.depends_on_id});msg="Dependency linked ✓";keep=true}
+    else if(op.op==="schedule"){
+      try{await j(`/commitments/${cid}/schedule${op.force?"?force=true":""}`,"POST");msg="Meeting added to your calendar with a Meet link ✓";keep=true}
+      catch(e){const d=e.detail;
+        if(e.status===409&&d&&d.reason==="busy"){const alts=(d.alternatives||[]).slice(0,3).map(a=>typeof a==="string"?a:(a.label||a.start||JSON.stringify(a))).join(", ");
+          botSay("You're busy then."+(alts?" Free: "+alts:""),[{label:"Schedule anyway",cls:"primary",run:()=>perform(n,{op:"schedule",force:true})}]);return}
+        msg=(typeof d==="string"&&d)||"Couldn't schedule ("+e.status+")";keep=true}}
+    else if(op.op==="mail"){try{const r=await j(`/commitments/${cid}/mail`,"POST",{});msg="Draft saved in Gmail ✉️"+(r.to?" to "+r.to:"");keep=true}
+      catch(e){msg=e.status===422?(e.detail||"No email on file.")+" Open the dashboard Mail button to add one.":"Couldn't save the draft.";keep=true}}
+    else if(op.op==="dep_keep"){await j(`/notifications/${id}/action`,"POST",{action:"accept"});msg="Kept ✓"}
+    else if(op.op==="dep_remove"){await j(`/dependencies/${op.dep_id}`,"DELETE");await j(`/notifications/${id}/action`,"POST",{action:"dismiss"});msg="Link removed"}
+    else if(op.op==="sug_link"){let r;try{r=await j(`/dependencies/suggestions/${op.sid}/link`,"POST",{});msg="Linked ✓"}
+      catch(e){if(e.status===422){r=await j(`/dependencies/suggestions/${op.sid}/track`,"POST");msg=`Now tracking ${r.created.owner}'s task and linked ✓`}else throw e}
+      await j(`/notifications/${id}/action`,"POST",{action:"accept"})}
+    else if(op.op==="sug_dismiss"){await j(`/dependencies/suggestions/${op.sid}/dismiss`,"POST");await j(`/notifications/${id}/action`,"POST",{action:"dismiss"});msg="Dismissed"}
+    else{botSay("Snooze is off. Try “push 1 day” or “done”.");return}
+  }catch(e){msg="Couldn't do that: "+e.message;keep=true}
+  const c=cards[id];
+  if(c&&!keep){c.final=true;c.el.classList.add("done");c.el.querySelector(".chips")?.remove();c.el.querySelector(".status").textContent=msg;setTimeout(loadToday,600)}
+  else botSay(msg);
+  if(selId===id&&!keep)selId=null;
+}
+function options(n){
+  const has=!!n.commitment_id, meet=has&&n.is_meeting&&n.calendar_status!=="scheduled";
+  const o=(label,op,cls)=>({label,cls,run:()=>perform(n,op)});
+  const toggle=(label,items)=>({label,run:(b,row)=>{const old=row.parentNode.querySelector(".sub-chips[data-k='"+label+"']");
+    row.parentNode.querySelectorAll(".sub-chips").forEach(x=>x.remove());if(old)return;
+    const sr=chipRow(items,n);sr.classList.add("sub-chips");sr.dataset.k=label;row.after(sr)}});
+  const resched=[o("Tomorrow",{op:"resched",how:1}),o("In 3 days",{op:"resched",how:3}),o("Next Monday",{op:"resched",how:"mon"})];
+  const extra=[...(has?[o("Draft mail",{op:"mail"})]:[]),...(has?[o("Remind 1 h before",{op:"remind",hours_before:1}),o("Remind 1 day before",{op:"remind",hours_before:24})]:[]),
+    ...(meet?[o("Schedule meeting",{op:"schedule"})]:[]),
+    ...(has?[{label:"Link dependency",run:()=>{$("#q").value="depends on ";$("#q").focus();$("#q").placeholder="e.g. depends on system-architecture"}}]:[]),o("Dismiss",{op:"dismiss"},"ghost")];
+  const main=has?o("Done",{op:"complete"},"primary"):o("Got it",{op:"accept"},"primary");
+  if(n.kind==="test")return[o("OK",{op:"accept"},"primary")];
+  if(n.kind==="dependency"){const k=n.dedupe_key||"",id=+k.split(":")[1];
+    if(k.startsWith("depremind:"))return[{label:"Open drafts ↗",cls:"primary",href:GMAIL_DRAFTS},o("Got it",{op:"accept"},"ghost")];
+    if(k.startsWith("deplink:"))return[o("Looks right",{op:"dep_keep"},"primary"),o("Remove link",{op:"dep_remove",dep_id:id},"ghost")];
+    if(k.startsWith("depsug:"))return[o("Yes, link it",{op:"sug_link",sid:id},"primary"),o("Not related",{op:"sug_dismiss",sid:id},"ghost")]}
+  return[main,...(has?[toggle("Move",resched)]:[]),toggle("More",extra)];
+}
+function build(n){
+  const e=el("div","msg bot");
+  e.appendChild(el("div","title",n.title));
+  let text=n.body||"";if(n.due_iso&&n.kind!=="dependency"&&!/due/i.test(text))text+=(text?" · ":"")+fmtDue(n.due_iso);
+  if(text)e.appendChild(el("div","body",text));
+  e.appendChild(chipRow(options(n),n));e.appendChild(el("div","status"));
+  e.addEventListener("click",()=>{if(!cards[n.id].final){selId=n.id;select()}});return e}
+function select(){Object.entries(cards).forEach(([id,c])=>c.el.classList.toggle("sel",+id===selId));
+  const on=selId&&cards[selId]&&!cards[selId].final,ctx=$("#ctx");ctx.classList.toggle("on",!!on);
+  if(on){const s=ctx.querySelector("span");s.textContent="";s.append("Replying to ",Object.assign(el("b"),{textContent:cards[selId].title||"alert"}))}
+  $("#q").placeholder=on?"Type done, push 2 days, remind me…":"Ask about your tasks…"}
+$("#ctx button").onclick=()=>{selId=null;select()};
+function settle(n,c){
+  if((n.status==="actioned"||n.status==="dismissed")&&!c.final){c.final=true;c.el.classList.add("done");c.el.querySelector(".chips")?.remove();
+    c.el.querySelector(".status").textContent=({complete:"Done ✓",reschedule:"Moved ✓",accept:"Accepted ✓",dismiss:"Dismissed",remind:"Reminder set ✓",superseded:""})[n.action_taken]??"Handled ✓"}}
+const live=()=>Object.entries(cards).filter(([,c])=>!c.final&&!c.digest).map(([id])=>+id);
+const DIGEST=new Set(["brief","today"]);
+async function poll(){
+  try{
+    const items=await j("/assistant/feed");
+    for(const n of items){
+      let c=cards[n.id];
+      if(!c){
+        if(DIGEST.has(n.kind)){ // briefs and 30-min reminders update the Today card instead of adding paragraphs
+          c={digest:true,final:true,el:document.createElement("span")};cards[n.id]=c;
+          if(n.status==="pending"||n.status==="delivered"){if(!first){await loadToday();bumpToday();if(!document.hasFocus())document.title="● CommiSense Assistant"}}
+        }else if(n.status==="pending"||n.status==="delivered"){
+          const e=build(n);feed.appendChild(e);c={el:e,final:false,title:n.title};cards[n.id]=c;bottom();if(!first&&!document.hasFocus())document.title="● CommiSense Assistant"}
+        else{c={digest:true,final:true,el:document.createElement("span")};cards[n.id]=c}
+      }
+      if(!c.digest)settle(n,c);
+      if(n.status==="pending"&&!marked.has(n.id)){marked.add(n.id);j(`/notifications/${n.id}/delivered`,"POST").catch(()=>{})}
+    }
+    const l=live();if(selId===null||!cards[selId]||cards[selId].final){selId=l.length?l[l.length-1]:null}select();first=false;
+  }catch(e){}
+}
+const Q=/^(do|does|am|are|is|what|who|which|any|anything|whom)\b/i;
+async function depIntent(text,t){
+  let m;
+  if(Q.test(t)&&(m=t.match(/\b(?:depend\w*|waiting|wait|waits|blocked|blocking)\b.*?\b(?:on|for|by|from|upon)\s+(.+?)\s*\??$/i))&&!/^what (does|do) /i.test(t)&&!/^what (depends on|is waiting on|waits on|is blocked by) /i.test(t)&&!/^what(?:'s| is) blocking /i.test(t)){
+    const p=m[1].replace(/^(from|on|for|by)\s+/i,"").trim();if(p&&p.split(/\s+/).length<=3)return{say:()=>whoNode(p,/\bmy\b|\bi\b|\bme\b/i.test(t)),follow:["deps","manage"]}}
+  if((m=text.match(/^what (?:does|do) (.+?) (?:depend on|wait for|wait on|need)\s*\??$/i))||(m=text.match(/^what(?:'s| is) blocking (.+?)\s*\??$/i)))return{say:()=>ofNode(m[1],"up"),follow:["deps","manage"]};
+  if(m=text.match(/^what (?:depends on|is waiting on|waits on|is blocked by) (.+?)\s*\??$/i))return{say:()=>ofNode(m[1],"blocks"),follow:["deps","manage"]};
+  if(Q.test(t))return null;
+  if(m=text.match(/^(?:unlink|remove (?:the )?(?:link|dependency)(?: between)?)\s+(.+?)\s+(?:and|from|to|->|→|,)\s+(.+)$/i))return{run:()=>unlinkByName(m[1],m[2])};
+  if(m=text.match(/^(.+?)\s+(?:blocks|unblocks|is needed by|must (?:finish|be done) before)\s+(.+)$/i))return{run:()=>linkByName(m[2],m[1])};
+  if(m=text.match(/^(.+?)\s+(?:depends on|depend on|is blocked by|waits on|waits for|is waiting on|is waiting for)\s+(.+)$/i))return{run:()=>linkByName(m[1],m[2])};
+  if(m=text.match(/^(?:depends on|blocked by|waiting on|waiting for|waits on|waits for)\s+(.+)$/i)){
+    const f=await j("/assistant/feed").then(a=>a.find(x=>x.id===selId)).catch(()=>null);
+    if(!f||!f.commitment_id)return{say:async()=>"Tap an alert first, or name both: “final-presentation depends on system-architecture”.",follow:["deps"]};
+    return{run:()=>linkByName("#"+f.commitment_id,m[1])}}
+  return null}
+let busy=false;
+async function send(text){
+  text=text.trim();if(!text||busy)return;
+  {const intent=await depIntent(text,text.toLowerCase()).catch(()=>null);
+   if(intent){busy=true;$("#q").disabled=true;bubble("me",text);typing(true);
+     try{if(intent.say){const n=await intent.say();await wait(300);typing(false);botSay(n,null,intent.follow)}else{await wait(250);typing(false);await intent.run()}}
+     catch(e){typing(false);botSay("I couldn't do that"+(e.message?" ("+e.message+")":"")+".",[{label:"Retry",cls:"primary",run:()=>send(text)}])}
+     finally{busy=false;$("#q").disabled=false;$("#q").focus()}return}}
+  if(!COMMAND.test(text)||!selId){const t=text.toLowerCase();
+    if(/^(help|\?)$/.test(t))return ask("help");if(/brief|summary/.test(t))return ask(/week/.test(t)?"weekly":"brief");
+    if(!COMMAND.test(text)){const hit=INTENTS.find(([,re])=>re.test(t));if(hit&&t.split(/\s+/).length<=8){const k=hit[0];bubble("me",text);typing(true);
+      try{const node=await localAnswer(k);await wait(300);typing(false);botSay(node,null,k==="manage"?null:FOLLOW[k])}catch(e){typing(false);botSay("I couldn't load that.")}return}}}
+  busy=true;$("#q").disabled=true;bubble("me",text);typing(true);
+  try{
+    const r=await j("/assistant/chat","POST",{text,notification_id:selId});
+    await wait(250);typing(false);
+    if(r.reply)botSay(r.reply,null,r.do?null:(/help|try/i.test(r.reply)?["today","overdue"]:["today","priority"]));
+    if(r.do){const feedN=await j("/assistant/feed").then(a=>a.find(x=>x.id===selId)).catch(()=>null);
+      if(feedN)await perform(feedN,r.do);else botSay("Tap an alert first, then type that.")}
+  }catch(e){typing(false);botSay("Something went wrong ("+e.message+").",[{label:"Retry",cls:"primary",run:()=>send(text)}])}
+  finally{busy=false;$("#q").disabled=false;$("#q").focus()}
+}
+$("#f").onsubmit=e=>{e.preventDefault();const v=$("#q").value;$("#q").value="";send(v)};
+window.addEventListener("focus",()=>document.title="CommiSense Assistant");
+const setLive=ok=>{$("#live").classList.toggle("off",!ok);$("#live").title=ok?"Connected":"Reconnecting…"};
+const beat=()=>fetch("/assistant/heartbeat",{method:"POST"}).then(r=>setLive(r.ok)).catch(()=>setLive(false));
+$("#clr").onclick=()=>{feed.querySelectorAll(".msg.me,.msg.say,.typing").forEach(x=>x.remove())};
+(async()=>{
+  await loadToday();
+  beat();setInterval(beat,4000);await poll();setInterval(poll,3500);setInterval(loadToday,60000);
+})();
+</script></body></html>

@@ -1,0 +1,43 @@
+# secrets and credentials
+.env
+.env.*
+!.env.example
+credentials.json
+client_secret*.json
+token*.json
+*token*.json
+*.pem
+*.key
+
+# python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# node
+node_modules/
+dist/
+.vite/
+
+# local data and caches
+*.log
+*.sqlite
+*.db
+pgdata/
+transcripts/
+file_drop/
+teams_state*.json
+teams_token_cache*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+.auth_secret
+/commitment-tracker/drop/

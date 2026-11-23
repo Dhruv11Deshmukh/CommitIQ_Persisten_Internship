@@ -1,0 +1,74 @@
+/* Landing + sign in / sign up layout (plain CSS, independent of Tailwind) */
+.lp { position: relative; min-height: 100vh; background: var(--bg); color: var(--ink); overflow-x: hidden; }
+.lp-wrap { position: relative; z-index: 2; width: min(1180px, 100% - 3rem); margin: 0 auto; }
+
+.lp-nav { position: fixed; z-index: 30; top: 0; left: 0; right: 0; transition: background 0.4s, border-color 0.4s, backdrop-filter 0.4s; border-bottom: 1px solid transparent; }
+.lp-nav.solid { background: rgba(5, 5, 5, 0.72); backdrop-filter: blur(16px); border-color: var(--line); }
+.lp-nav-in { display: flex; align-items: center; justify-content: space-between; height: 4.5rem; width: min(1280px, 100% - 3rem); margin: 0 auto; }
+.lp-logo { display: inline-flex; align-items: center; gap: 0.7rem; font: 700 1.15rem var(--sans); letter-spacing: -0.02em; color: var(--ink); text-decoration: none; background: none; border: 0; cursor: pointer; }
+.lp-logo-mark { width: 2.1rem; height: 2.1rem; border-radius: 0.65rem; display: grid; place-items: center; background: var(--accent); box-shadow: 0 0 26px rgba(229, 9, 20, 0.45); }
+.lp-nav-actions { display: flex; gap: 0.6rem; }
+
+.lp-hero { position: relative; min-height: 100vh; display: flex; align-items: center; padding: 7rem 0 5rem; }
+.lp-hero-bg { position: absolute; inset: 0; background: radial-gradient(60% 60% at 78% 42%, rgba(229, 9, 20, 0.10), transparent 70%), radial-gradient(50% 50% at 15% 100%, rgba(255, 255, 255, 0.05), transparent 70%); }
+.lp-hero-copy { max-width: 40rem; }
+.lp-h1 .w { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+.lp-h1 .w > span { display: inline-block; will-change: transform; }
+.lp-hero .cin-eyebrow { margin-bottom: 1.6rem; }
+.lp-hero .cin-lead { margin: 1.6rem 0 1.8rem; max-width: 34rem; }
+.lp-points { list-style: none; margin: 0 0 2.2rem; padding: 0; display: grid; gap: 0.7rem; }
+.lp-points li { display: flex; align-items: center; gap: 0.8rem; color: var(--ink-2); font-size: 0.98rem; }
+.lp-points li::before { content: ""; width: 18px; height: 1px; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+.lp-cta { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+.lp-scroll { position: absolute; z-index: 3; left: 50%; bottom: 1.6rem; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--faint); font: 500 0.7rem var(--sans); letter-spacing: 0.2em; text-transform: uppercase; }
+.lp-scroll i { width: 1px; height: 38px; background: linear-gradient(var(--ink-2), transparent); animation: lp-drip 2.2s var(--ease) infinite; transform-origin: top; }
+@keyframes lp-drip { 0% { transform: scaleY(0); } 50% { transform: scaleY(1); } 100% { transform: scaleY(1); opacity: 0; } }
+
+.lp-section { position: relative; padding: 7rem 0; }
+.lp-section + .lp-section { border-top: 1px solid var(--line); }
+.lp-kicker { font: 600 0.78rem var(--sans); letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+.lp-head { max-width: 40rem; margin-bottom: 3.2rem; }
+.lp-head .cin-lead { margin-top: 1rem; }
+.lp-grid { display: grid; gap: 1.1rem; grid-template-columns: repeat(3, 1fr); perspective: 1200px; }
+.lp-grid.two { grid-template-columns: repeat(3, 1fr); }
+.lp-card { padding: 1.7rem 1.6rem 1.8rem; min-height: 14.5rem; }
+.lp-num { font: 400 3.2rem/1 var(--serif); font-style: italic; color: rgba(255, 255, 255, 0.16); margin-bottom: 1.4rem; }
+.lp-icon { width: 2.6rem; height: 2.6rem; border-radius: 0.8rem; display: grid; place-items: center; border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.05); color: var(--ink); margin-bottom: 1.3rem; }
+.lp-card h3 { font: 600 1.15rem var(--sans); letter-spacing: -0.02em; margin: 0 0 0.6rem; }
+.lp-card p { margin: 0; color: var(--mute); font-size: 0.95rem; line-height: 1.65; }
+.lp-final { text-align: center; padding: 8rem 0; background: radial-gradient(50% 70% at 50% 100%, rgba(229, 9, 20, 0.12), transparent 70%); }
+.lp-final .lp-cta { justify-content: center; margin-top: 2rem; }
+.lp-foot { border-top: 1px solid var(--line); padding: 2rem 0; color: var(--faint); font-size: 0.85rem; }
+.lp-foot .lp-wrap { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+/* auth */
+.au { position: relative; min-height: 100vh; display: grid; place-items: center; padding: 4.5rem 1.25rem 2rem; background: var(--bg); overflow: hidden; }
+.au-bg { position: absolute; inset: 0; background: radial-gradient(55% 55% at 50% 40%, rgba(229, 9, 20, 0.09), transparent 70%); }
+.au-card { position: relative; z-index: 3; width: min(30rem, 100%); padding: 1.8rem 2rem 1.5rem; border-radius: 26px; background: rgba(14, 14, 16, 0.78); border: 1px solid var(--line-2); backdrop-filter: blur(22px); box-shadow: 0 40px 120px rgba(0, 0, 0, 0.7); }
+.au-card h1 { font: 600 1.7rem var(--sans); letter-spacing: -0.035em; margin: 1.3rem 0 1.1rem; }
+.au-brand { display: flex; align-items: center; gap: 0.9rem; }
+.au-brand b { display: block; font: 700 1.1rem var(--sans); letter-spacing: -0.02em; }
+.au-brand small { color: var(--mute); font-size: 0.82rem; }
+.au-field { margin-bottom: 0.8rem; }
+.au-pw { position: relative; }
+.au-pw button { position: absolute; right: 0.4rem; top: 50%; transform: translateY(-50%); border: 0; background: none; color: var(--mute); font: 500 0.8rem var(--sans); padding: 0.5rem 0.7rem; cursor: pointer; }
+.au-pw button:hover { color: var(--ink); }
+.au-or { display: flex; align-items: center; gap: 0.9rem; margin: 1rem 0; color: var(--faint); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.au-or::before, .au-or::after { content: ""; flex: 1; height: 1px; background: var(--line-2); }
+.au-help { color: var(--faint); font-size: 0.8rem; line-height: 1.5; margin: -0.2rem 0 1.1rem; }
+.au-error { margin: 0 0 1rem; padding: 0.75rem 0.95rem; border-radius: 12px; border: 1px solid rgba(255, 107, 115, 0.4); background: rgba(229, 9, 20, 0.1); color: #ff9aa0; font-size: 0.88rem; line-height: 1.45; }
+.au-note { margin: 0.8rem 0 0; color: var(--faint); font-size: 0.78rem; line-height: 1.55; text-align: center; }
+.au-switch { margin: 1rem 0 0; text-align: center; color: var(--mute); font-size: 0.92rem; }
+.au-switch button { background: none; border: 0; padding: 0; color: var(--ink); font: 600 0.92rem var(--sans); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.au-back { position: absolute; z-index: 4; top: 1.4rem; left: 1.6rem; }
+.splash { min-height: 100vh; display: grid; place-items: center; background: var(--bg); color: var(--mute); text-align: center; font-family: var(--sans); }
+
+@media (max-width: 900px) {
+  .lp-grid { grid-template-columns: 1fr; }
+  .lp-hero { padding-top: 6rem; }
+  .lp-hero-copy { text-shadow: 0 2px 30px rgba(0, 0, 0, 0.8); }
+  .lp-scroll { display: none; }
+  .lp-section { padding: 4.5rem 0; }
+}
+@media (min-width: 901px) and (max-width: 1100px) { .lp-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) { .lp-nav-actions .cin-btn.ghost { display: none; } .au-card { padding: 1.7rem 1.3rem 1.4rem; } }
